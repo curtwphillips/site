@@ -1,0 +1,29 @@
+.card-container {
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 10px;
+  column-gap: 10px;
+  justify-content: center;
+}
+
+.card {
+  color: white;
+  border: 1px solid gray;
+  width: 200px;
+  padding: 10px;
+  overflow: hidden;
+}
+.card a {
+  color: white;
+}
+.image-container {
+  margin: 20px 0 20px 0;
+  max-height: 180px;
+  max-width: 100%;
+}
+
+.image-container img {
+  max-height: 200px;
+  max-width: 100%;
+}

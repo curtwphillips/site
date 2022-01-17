@@ -1,0 +1,68 @@
+label input {
+  visibility: hidden;
+  display: block;
+  height: 0;
+  width: 0;
+  position: absolute;
+  overflow: hidden;
+}
+label span {
+  height: 12px;
+  width: 12px;
+  border: 1px solid gray;
+  display: inline-block;
+  margin-right: 10px;
+}
+[type="checkbox"]:checked + span {
+  background: black;
+}
+.form-section {
+  text-align: left;
+}
+[type="number"] {
+  margin-left: 20px;
+}
+.delete-box {
+  width: 15px;
+  text-align: center;
+  display: inline-block;
+  margin-left: 10px;
+}
+.todo-row {
+  margin: 10px 0;
+  height: 20px;
+}
+#category-select {
+  width: auto;
+}
+.thin-input {
+  width: 200px;
+}
+.form-container {
+  text-align: center;
+  margin: auto;
+  width: 200px;
+}
+.inline {
+  display: inline-block;
+}
+.ml-10 {
+  margin-left: 10px;
+}
+.hidden {
+  display: none;
+}
+.lower-icon {
+  /* vertical-align: middle; */
+  margin-left: 20px;
+}
+.strike {
+  text-decoration: line-through;
+}
+.category-container {
+  display: inline-block;
+  vertical-align: top;
+  border: 1px solid gray;
+  margin: 10px;
+  padding: 10px;
+}

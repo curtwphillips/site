@@ -1,0 +1,91 @@
+{
+   "profiles":[
+      {
+         "image":"/img/squids/alex-squid.png",
+         "name":"Alex",
+         "relation":"son",
+         "description":"Alex lives with me in Puerto Rico."
+      },
+      {
+         "image":"/img/squids/ameena-squid.png",
+         "name":"Ameena",
+         "relation":"wife",
+         "description":"Ameena is the greatest wife."
+      },
+      {
+         "image":"/img/squids/annelise-squid.png",
+         "name":"Annelise",
+         "relation":"daughter",
+         "description":"Annelise is the greatest daughter."
+      },
+      {
+         "image":"/img/squids/curtis-squid.png",
+         "name":"Curtis",
+         "relation":"self",
+         "description":"Collector of rare shells."
+      },
+      {
+         "image":"/img/squids/isaac-squid.png",
+         "name":"Isaac",
+         "relation":"son",
+         "description":"Isaac is calculating."
+      },
+      {
+         "image":"/img/squids/noah-squid.png",
+         "name":"Noah",
+         "relation":"son",
+         "description":"Noah is creative."
+      }
+   ],
+   "cards":[
+      {
+         "name":"Curtis",
+         "type":"Sorcerer",
+         "background":"red",
+         "image":"/img/squids/curtis-squid.png",
+         "link":"/family/curtis"
+      },
+      {
+         "name":"Ameena",
+         "type":"Healer",
+         "background":"purple",
+         "image":"/img/squids/ameena-squid.png",
+         "link":"/family/ameena"
+      },
+      {
+         "name":"Alex",
+         "type":"Warrior",
+         "background":"blue",
+         "image":"/img/squids/alex-squid.png",
+         "link":"/family/alex"
+      },
+      {
+         "name":"Annelise",
+         "type":"Artist",
+         "background":"green",
+         "image":"/img/squids/annelise-squid.png",
+         "link":"/family/annelise"
+      },
+      {
+         "name":"Austin",
+         "type":"Archer",
+         "background":"brown",
+         "image":"/img/squids/austin-squid.png",
+         "link":"/family/austin"
+      },
+      {
+         "name":"Noah",
+         "type":"Ninja",
+         "background":"orange",
+         "image":"/img/squids/noah-squid.png",
+         "link":"/family/noah"
+      },
+      {
+         "name":"Isaac",
+         "type":"Philosopher",
+         "background":"grey",
+         "image":"/img/squids/isaac-squid.png",
+         "link":"/family/isaac"
+      }
+   ]
+}

@@ -1,0 +1,83 @@
+{
+  "General":[
+     {
+        "name":"vitamins-morning",
+        "text":"Took vitamins this morning",
+        "checked":false,
+        "order":"0",
+        "recurring":true
+     },
+     {
+        "name":"walked-dogs",
+        "text":"Walked the dogs",
+        "checked":false,
+        "order":"1",
+        "recurring":true
+     },
+     {
+        "name":"drink-water",
+        "text":"Drank 8 glasses of water",
+        "checked":false,
+        "order":"2",
+        "recurring":true
+     },
+     {
+        "name":"vitamins-night",
+        "text":"Took vitamins tonight",
+        "checked":false,
+        "order":"3",
+        "recurring":true
+     }
+  ],
+  "Workouts":[
+     {
+        "name":"stretching",
+        "text":"stretching - sit on toes, hamstrings",
+        "checked":false,
+        "order":"4",
+        "recurring":true
+     },
+     {
+        "name":"core",
+        "text":"core - crunches, leg lifts",
+        "checked":false,
+        "order":"5",
+        "recurring":true
+     },
+     {
+        "name":"pushups",
+        "text":"pushups",
+        "checked":false,
+        "order":"6",
+        "recurring":true
+     },
+     {
+        "name":"squats",
+        "text":"squats",
+        "checked":false,
+        "order":"7",
+        "recurring":true
+     },
+     {
+        "name":"triceps",
+        "text":"tricep extensions",
+        "checked":false,
+        "order":"8",
+        "recurring":true
+     },
+     {
+        "name":"curls",
+        "text":"curls",
+        "checked":false,
+        "order":"9",
+        "recurring":true
+     },
+     {
+        "name":"shoulder-press",
+        "text":"shoulder press",
+        "checked":false,
+        "order":"10",
+        "recurring":true
+     }
+  ]
+}

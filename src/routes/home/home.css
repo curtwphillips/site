@@ -1,0 +1,144 @@
+.banner-image {
+  max-width: 100%;
+  overflow: hidden;
+  background-attachment: fixed;
+}
+
+.spacer {
+  background-color: transparent;
+  padding: 100px 0 100px 0;
+  height: 100%;
+  min-height: 700px;
+  text-align: center;
+}
+
+.banner-text {
+  font-weight: 20px;
+  color: white;
+  font-size: 3em;
+  text-align: center;
+  opacity: 90%;
+  margin-left: 50%;
+}
+
+.parallax {
+  /* The image used */
+  background-image: url("../../../public/img/onTheWater1.png");
+
+  /* Set a specific height */
+  min-height: 500px;
+  padding-top: 180px;
+  /* Create the parallax scrolling effect */
+  background-attachment: fixed;
+  background-position: top;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@media only screen and (max-width: 500px) {
+  .spacer {
+    background-color: transparent;
+    padding: 70px 0 10px 0;
+    height: 90%;
+    min-height: 200px;
+    text-align: center;
+  }
+  .parallax {
+    /* The image used */
+    background-image: url("../../../public/img/onTheWater3.png");
+
+    /* Set a specific height */
+    /* min-height: 300px; */
+    padding-top: 300px;
+
+    /* Create the parallax scrolling effect */
+    background-attachment: fixed;
+    background-position: top;
+    background-repeat: no-repeat;
+    background-size: 100%;
+  }
+}
+
+.app-bar {
+  padding: 10%;
+  background-color: #282c34;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  min-height: 400px;
+}
+
+.lined {
+  color: #333;
+  font-family: sans-serif;
+  width: 300px;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+.lined h2 {
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid #000;
+  line-height: 0.1em;
+  margin: 10px 0 20px;
+}
+
+.lined h2 span {
+  background: #fff;
+  padding: 0 10px;
+}
+.side-by-side {
+  float: left;
+  max-width: 50%;
+  flex-direction: row;
+  margin: auto;
+  max-height: 10%;
+}
+.article-section-image img {
+  object-fit: cover;
+  display: block;
+  max-width: 300px;
+  margin: auto;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.side-by-side-2 {
+  max-width: 100%;
+  margin: auto;
+  max-height: 10%;
+  display: flex;
+  flex-direction: row;
+  row-gap: 200px;
+}
+
+.side-by-side-2 img {
+  max-width: 50%;
+  max-height: 200px;
+}
+.article-section {
+  max-width: 500px;
+  width: 100%;
+}
+.article-section h4 {
+  color: blue;
+  font-weight: 200;
+  text-align: left;
+}
+.article-section label {
+  text-align: left;
+  float: left;
+  width: 100%;
+}
+.article-section p {
+  font-size: 14px;
+  color: #50555c;
+}
+.article-section-image {
+  margin: auto;
+  margin-bottom: 50px;
+}

@@ -1,0 +1,29 @@
+.image-container {
+  margin: 20px 0 20px 0;
+  max-height: 180px;
+  max-width: 100%;
+}
+
+.image-container img {
+  max-height: 200px;
+  max-width: 100%;
+}
+.link {
+  margin: auto;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+.link a {
+  border: 1px solid black;
+  font-size: 20px;
+  margin: 80px;
+  font-weight: 800;
+  padding: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  min-width: 500px;
+}
+.family-container {
+  min-height: 350px;
+}
