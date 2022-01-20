@@ -6,8 +6,6 @@ import Row from 'react-bootstrap/Row';
 import Container from 'react-bootstrap/Container';
 import '../../css/common.css';
 
-const rememberMe = (e) => console.log(e.target);
-
 export default function ForgotPassword() {
   return (
     <Container>

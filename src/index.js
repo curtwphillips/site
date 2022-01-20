@@ -5,6 +5,7 @@ import {
   Routes,
   Route
 } from "react-router-dom";
+import axios from 'axios';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
@@ -20,21 +21,29 @@ import Login from './routes/login/login';
 import Register from './routes/login/register';
 import ForgotPassword from './routes/login/forgotPassword';
 
+import { Provider } from 'react-redux';
+import store from './store';
+
+axios.defaults.baseURL = process.env.REACT_APP_API_BASEURL
+console.log('axios api port:', process.env.REACT_APP_API_BASEURL)
+
 ReactDOM.render(
   <React.StrictMode>
-  <BrowserRouter>
-    <Nav />
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/family" element={<Family />} />
-      <Route path="/family/:name" element={<FamilyDetail />} />
-      <Route path="/todos" element={<Todos />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-    </Routes>
-  </BrowserRouter>,
+    <Provider store={store}>
+      <BrowserRouter>
+        <Nav />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/family" element={<Family />} />
+          <Route path="/family/:name" element={<FamilyDetail />} />
+          <Route path="/todos" element={<Todos />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Routes>
+      </BrowserRouter>
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );

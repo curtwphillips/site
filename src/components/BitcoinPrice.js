@@ -31,9 +31,10 @@ export default function BitcoinPrice({ className, style }) {
       clearInterval(interval);
     }
   }, []);
+
   return (
     <div style={style} className={className}>
-      {currencyFormat(Number(bitcoinPrice)) + ' - Last Updated: ' + bitcoinPriceDate.toLocaleTimeString()}
+      {`BTC ${currencyFormat(Number(bitcoinPrice))} - Last Updated: ${bitcoinPriceDate.toLocaleTimeString()}`}
     </div>
   )
 }

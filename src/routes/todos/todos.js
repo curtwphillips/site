@@ -5,14 +5,16 @@ warn before deleting category
 allow checkbox for new todo to be recurring or not
 
 */
-import { createRef, useState } from "react";
+import axios from 'axios';
+import { useNavigate } from "react-router-dom";
+import { createRef, useEffect, useState } from "react";
 import './todos.css';
 import Container from '../../components/Container';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import Form from 'react-bootstrap/Form';
-import data from '../../data/todoData';
-
+import { deepCopy, handleError, setStateKeyVal } from '../../utilities';
+import AlertBox from '../../components/AlertBox';
 import {
   DndContext, 
   closestCenter,
@@ -28,34 +30,101 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {SortableCategory} from './todosSortableCategory';
+import { useSelector } from 'react-redux';
 
 export default function Todos () {
-  const [todos, updateTodos] = useState(data);
-  const [hiddenCategories, updateHiddenCategories] = useState({});
-  const [todoCategories, updateTodoCategories] = useState(Object.keys(todos).sort());
-  const todoTextRefs = {};
-  todoCategories.forEach((category) => todoTextRefs[category] = createRef());
+  const [state, updateState] = useState({});
+  const [data, updateData] = useState([]);
+  const categoryTextInputRef = createRef();
+  const navigate = useNavigate();
 
-  const categoryTextInput = createRef();
+  const user = useSelector((state) => state.user);
 
-  const addCategory = () => {
-    // get category from input text
-    const category = categoryTextInput.current.value;
+  // get the todos data for the user
+  useEffect(() => {
+    // todo: uncomment to help enforce auth
+    // if (!user.token) {
+    //   return navigate('/', { replace: true });
+    // }
 
-    // add category to data object
-    if (category && !todos[category]) {
-      console.log('update todos')
-      const newTodos = safeCopyTodos();
-      // capitalize first letter
-      const formattedCategory = category[0].toUpperCase() + category.substring(1);
-      newTodos[formattedCategory] = [];
-      console.log('newTodos:', newTodos)
-      updateTodos(newTodos);
-      const newTodoCategories = [...todoCategories];
-      newTodoCategories.push(formattedCategory);
-      updateTodoCategories(newTodoCategories);
+    let isMounted = true;
+
+    async function getData(isMounted) {
+      try {
+        const { data } = await axios.get('/todos');
+
+        console.log('axios get data:', data);
+        if (isMounted) {
+          data.forEach((categoryData) => {
+            categoryData.todoTextRef = createRef()
+          });
+          updateData(data);
+        }
+      } catch (err) {
+        handleError(err, state, updateState);
+      }
     }
-    categoryTextInput.current.value = '';
+
+    getData(isMounted);
+
+    return () => {
+      isMounted = false;
+    }
+  }, []);
+
+  function setupRefs(noRefData = data) {
+    console.log('noRefData:', noRefData)
+    noRefData.forEach((categoryData) => {
+      categoryData.todoTextRef = createRef();
+    });
+    console.log('noRefData complete:', noRefData)
+    return noRefData;
+  }
+
+  function removeRefs(refData = data) {
+    refData.forEach((categoryData) => {
+      delete categoryData.todoTextRef;
+    });
+    return refData;
+  }
+
+  function deepCopyData(data) {
+    return setupRefs(deepCopy(removeRefs(data)));
+  }
+
+  const getDataByCategory = (category, newData) => (newData || data).find((todos) => todos.category === category);
+
+  const addCategory = async () => {
+    try {
+      // get category from input text and erase input field
+      const category = categoryTextInputRef.current.value;
+      categoryTextInputRef.current.value = '';
+
+      // add category to data object
+      if (category && !getDataByCategory(category)) {
+        // instant update
+        const newData = deepCopyData(data);
+        newData.push({
+          category,
+          hidden: false,
+          order: getNewCategoryOrder(),
+          todos: []
+        });
+
+        updateData(newData)
+
+        // backend decides order and returns latest data
+        const { data: responseData } = await axios.post('/todos/category', { category });
+
+        console.log('responseData:', responseData);
+        setupRefs(responseData);
+        console.log('done with refs')
+        updateData(responseData);
+      }
+    } catch (err) {
+      console.log(err)
+      handleError(err, state, updateState);
+    }
   }
 
   const onCategoryKeyUp = (e) => {
@@ -64,40 +133,88 @@ export default function Todos () {
     }
   }
 
-  const hideCategory = (category) => {
-    // un/hide all, switch the arrow
-    const newHiddenCategories = {...hiddenCategories};
-    newHiddenCategories[category] = !newHiddenCategories[category];
-    updateHiddenCategories(newHiddenCategories);
+  const hideCategory = async (category) => {
+    try {
+      // un/hide all, switch the arrow
+      const newData = deepCopyData(data);
+      const categoryData = getDataByCategory(category, newData);
+      categoryData.hidden = !categoryData.hidden;
+      updateData(newData);
+
+      // update backend, no reloading necessary for hiding a category
+      await axios.put('/todos/category', { category, hidden: categoryData.hidden });
+    } catch (err) {
+      handleError(err, state, updateState);
+    }
   };
 
-  const getTodoOrder = (category) => {
-    const existingOrders = todos[category].map((todo) => Number(todo.order));
-    if (!existingOrders.length) {
-      existingOrders.push(-1);
+  const getNewCategoryOrder = (category) => {
+    try {
+      const existingOrders = data.map((categoryData) => Number(categoryData.order));
+
+      // default to 0 if no categories
+      if (!existingOrders.length) {
+        existingOrders.push(-1);
+      }
+
+      return 1 + Math.max.apply(null, existingOrders);
+    } catch (err) {
+      handleError(err, state, updateState);
     }
-    console.log('result1:', existingOrders)
-    console.log('final result:', 1 + Math.max.apply(null, existingOrders))
-    return 1 + Math.max.apply(null, existingOrders);
   };
 
-  const addTodo = (category, e, ref) => {
-    console.log('start addTodo')
-    const target = e ? e.target : ref.current;
-    console.log('target:', target)
-    const { value } = target;
-    console.log('value:', value)
-    if (!value) {
-      return;
-    }
-    const newTodo = { name: Math.random(), text: value, checked: false, order: '' + getTodoOrder(category) };
+  const getNewTodoOrder = (category) => {
+    try {
+      const categoryData = getDataByCategory(category);
+      const existingOrders = (categoryData.todos || []).map((todo) => Number(todo.order));
 
-    // add todo to category
-    const newTodos = safeCopyTodos();
-    newTodos[category].push(newTodo);
-    // set checked value
-    updateTodos(newTodos);
-    target.value = '';
+      // default to 0 if no todos
+      if (!existingOrders.length) {
+        existingOrders.push(-1);
+      }
+
+      return 1 + Math.max.apply(null, existingOrders);
+    } catch (err) {
+      handleError(err, state, updateState)
+    }
+  };
+
+  // update todos list with new todo object
+  const addTodo = async (category, e, ref) => {
+    try {
+      const target = e ? e.target : ref.current;
+
+      if (!target) {
+        throw new Error('Missing target');
+      }
+
+      const { value } = target;
+
+      if (!value) {
+        return;
+      }
+
+      // text must be unique
+      if (getDataByCategory(category).todos.find((todo) => todo.text === value)) {
+        throw new Error('Todo already exists');
+      }
+
+      // make random name for uniqueness
+      const newTodo = { name: Math.random(), text: value, checked: false, order: '' + getNewTodoOrder(category) };
+
+      // add todo to category
+      const newData = deepCopyData(data);
+      const categoryData = getDataByCategory(category, newData);
+      categoryData.todos.push(newTodo);
+
+      updateData(newData);
+      target.value = '';
+
+      console.log('posting new todo:', newTodo);
+      await axios.post('/todos/todo', { todo: newTodo });
+    } catch (err) {
+      handleError(err, state, updateState);
+    }
   };
  
   const onTodoKeyUp = (e, category) => {
@@ -106,16 +223,6 @@ export default function Todos () {
     }
   }
 
-  const safeCopyTodos = () => {
-    const newTodos = {
-      ...todos,
-    };
-    for (let key in newTodos) {
-      newTodos[key] = newTodos[key].map((todo) => ({...todo}));
-    }
-    return newTodos;
-  };
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -123,40 +230,55 @@ export default function Todos () {
     })
   );
 
-  // const [items, setItems] = useState(['1', '2', '3']);
+  const updateChecked = async (category, todoIndex, e) => {
+    try {
+      console.log('update checked starts')
+      const newData = deepCopyData(data);
+      const categoryData = getDataByCategory(category, newData);
+      categoryData.todos[todoIndex].checked = e.target.checked;
+      console.log('newData:', newData)
+      updateData(newData);
 
-  const updateChecked = (category, todoIndex, e) => {
-    console.log('update checked starts')
-    const newTodos = safeCopyTodos();
-    newTodos[category][todoIndex].checked = e.target.checked;
-    console.log('newTodos:', newTodos)
-    updateTodos(newTodos);
+      await axios.put('/todos/todo', { category, todo: categoryData.todos[todoIndex] });
+    } catch (err) {
+      handleError(err, state, updateState)
+    }
   };
   
-  const deleteCategory = (category) => {
-    const newTodos = safeCopyTodos();
-    delete newTodos[category];
-    updateTodoCategories(Object.keys(newTodos).sort());
-    updateTodos(newTodos);
+  const deleteCategory = async (category) => {
+    try {
+      const newData = deepCopyData();
+      const categoryIndex = newData.findIndex((categoryData) => categoryData[category] === category);
+      delete newData[categoryIndex];
+      updateData(newData);
+      await axios.delete('/todos/category', { category });
+    } catch (err) {
+      handleError(err, state, updateState);
+    }
   };
 
-  const deleteTodo = (category, todoIndex) => {
-    const newTodos = safeCopyTodos();
-    newTodos[category].splice(todoIndex, 1);
-    updateTodos(newTodos);
+  const deleteTodo = async (category, todoIndex) => {
+    try {
+      const newData = deepCopyData();
+      const categoryData = getDataByCategory(category, newData);
+      const todo = categoryData.todos[todoIndex];
+      categoryData.todos.splice(todoIndex, 1);
+      updateData(newData);
+      await axios.delete('/todos/todo', { category, todoId: todo._id });
+    } catch (err) {
+      handleError(err, state, updateState);
+    }
   };
 
   const shared = {
     addTodo,
     deleteCategory,
     deleteTodo,
-    handleDragEnd,
-    hiddenCategories,
+    handleDragEndTodo,
     hideCategory,
     onTodoKeyUp,
-    safeCopyTodos,
-    todos,
-    todoTextRefs,
+    deepCopyData,
+    data,
     updateChecked,
   };
 
@@ -164,10 +286,17 @@ export default function Todos () {
     <Container>
     <div className="form-section" id="health-container">
 
+      <AlertBox
+        show={state.error ? true : false}
+        variant="danger"
+        message={(state.error && state.error.text) || state.error}
+        onClick={() => setStateKeyVal(state, 'error', null, updateState)}
+      />
+
       {/* add a new category */}
       <div className="todo-row mt-3 mb-5">
         <Form.Group className="mb-3" controlId="categoryInput">
-          <Form.Control ref={categoryTextInput} onKeyPress={onCategoryKeyUp} className="inline thin-input mr-5" type="text" placeholder="enter new category" />{'  '}
+          <Form.Control ref={categoryTextInputRef} onKeyPress={onCategoryKeyUp} className="inline thin-input mr-5" type="text" placeholder="enter new category" />{'  '}
           <FontAwesomeIcon className="inline" icon={faPlus} onClick={addCategory}/>
         </Form.Group>
       </div>
@@ -178,36 +307,42 @@ export default function Todos () {
       onDragEnd={(e) => handleDragEndCategory(e)}
       >
         <SortableContext
-          items={todoCategories}
+          items={data.map((categoryData) => categoryData.order.toString())}
           strategy={verticalListSortingStrategy}
         >
-      {todoCategories.map(category => <SortableCategory category={category} key={category} id={category} value={todos[category]} shared={shared} />)}
-      </SortableContext>
-            </DndContext>
+          {data.map((categoryData) => categoryData.order).sort((a, b) => a.order - b.order).map((order, index) => <SortableCategory index={index} order={order} category={data[index].category} key={data[index].category} id={data[index].order.toString()} value={data[index]} shared={shared} />)}
+        </SortableContext>
+      </DndContext>
     </div>
     </Container>
   );
   
-  function handleDragEnd(event, category) {
+  function handleDragEndTodo(event, category) {
     const {active, over} = event;
     if (active.id !== over.id) {
-      const items = todos[category].map((todo) => todo.order);
-      updateTodos(() => {
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over.id);
-        const newTodos = safeCopyTodos();
-        newTodos[category] = arrayMove(newTodos[category], oldIndex, newIndex);
-        return newTodos;
-      });
+      const newData = deepCopyData();
+      let categoryData = getDataByCategory(category, newData);
+      const orders = categoryData.todos.map((todo) => todo.order);
+      const oldIndex = orders.indexOf(Number(active.id));
+      const newIndex = orders.indexOf(Number(over.id));
+      categoryData.todos = arrayMove(categoryData.todos, oldIndex, newIndex);
+      updateData(newData);
     }
   }
-  function handleDragEndCategory (event, category) {
+
+  function handleDragEndCategory (event) {
     const {active, over} = event;
+    console.log('handleDragEndCategory:', active, 'over:', over)
     if (active.id !== over.id) {
-      const items = todoCategories;
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over.id);
-        updateTodoCategories(arrayMove(todoCategories, oldIndex, newIndex))
+      const orders = data.map((categoryData) => categoryData.order);
+      const oldIndex = orders.indexOf(Number(active.id));
+      const newIndex = orders.indexOf(Number(over.id));
+      console.log('oldIndex:', oldIndex, 'newIndex:', newIndex)
+      let result = deepCopyData(arrayMove(data, oldIndex, newIndex));
+      console.log('result:', result);
+      result = JSON.parse(JSON.stringify(result));
+      updateData(result);
+      console.log('data:', data);
     }
   }
 }

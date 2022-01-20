@@ -10,7 +10,6 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons';
 import { faMinus } from '@fortawesome/free-solid-svg-icons';
 import { SortableTodo } from './todosSortableTodo';
-
 import {
   DndContext, 
   closestCenter,
@@ -36,15 +35,14 @@ export function SortableCategory(props) {
   
   const {
     category,
+    index,
     shared: {
       addTodo,
       deleteCategory,
-      handleDragEnd,
-      hiddenCategories,
+      handleDragEndTodo,
       hideCategory,
       onTodoKeyUp,
-      todos,
-      todoTextRefs,
+      data,
     }
   } = props;
 
@@ -85,22 +83,22 @@ export function SortableCategory(props) {
       </Alert>
 
       { /* Minus sign for collapsed category */ }
-      <FontAwesomeIcon key={category + '-hide-icon'} size={hiddenCategories[category] ? '1x' : '1x'} className="inline lower-icon" icon={hiddenCategories[category] ? faMinus : faAngleDown} onClick={() => hideCategory(category)}/>
+      <FontAwesomeIcon key={category + '-hide-icon'} size={'1x'} className="inline lower-icon" icon={data[index].hidden ? faMinus : faAngleDown} onClick={() => hideCategory(category)}/>
       <div key={category + '-outer-div'}>
 
       {/* container for hiding todos in category */}
-      <div key={category + '-category-hide-div'} className={hiddenCategories[category] ? 'hidden' : ''}>
+      <div key={category + '-category-hide-div'} className={data[index].hidden ? 'hidden' : ''}>
         <DndContext 
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragEnd={(e) => handleDragEnd(e, category)}
+        onDragEnd={(e) => handleDragEndTodo(e, category)}
         key={`dnd-context-${category}`}
         >
           <SortableContext key={`sortable-context-${category}`}
-            items={todos[category].map((todo) => todo.order)}
+            items={data[index].todos.map((todo) => todo.order.toString())}
             strategy={verticalListSortingStrategy}
           >
-            {todos[category].map((todo, todoIndex) => <SortableTodo handle index={todoIndex} category={category} key={todo.order} id={todo.order} value={todo} shared={props.shared} />)}
+            {data[index].todos.map((todo, todoIndex) => <SortableTodo handle categoryIndex={index} todoIndex={todoIndex} category={category} key={todo.order} id={todo.order.toString()} value={todo} shared={props.shared} />)}
 
           </SortableContext>
         </DndContext>
@@ -108,8 +106,8 @@ export function SortableCategory(props) {
         {/* add a new todo under this category */}
         <div key={category + '-add'} className="todo-row mt-3 mb-5">
           <Form.Group className="mb-3" controlId="todoInput">
-            <Form.Control ref={todoTextRefs[category]} onKeyPress={(e) => onTodoKeyUp(e, category)} className="inline thin-input mr-5" type="text" placeholder="todo" />{'  '}
-            <FontAwesomeIcon className="inline" icon={faPlus} onClick={() => addTodo(category, null, todoTextRefs[category])} />
+            <Form.Control ref={data[index].todoTextRef} onKeyPress={(e) => onTodoKeyUp(e, category)} className="inline thin-input mr-5" type="text" placeholder="todo" />{'  '}
+            <FontAwesomeIcon className="inline" icon={faPlus} onClick={() => addTodo(category, null, data[index].todoTextRef)} />
           </Form.Group>
         </div>
 
