@@ -73,7 +73,7 @@ export function SortableCategory(props) {
         </p>
         <hr />
         <div className="d-flex justify-content-end">
-          <Button onClick={() => deleteCategory(category)} variant="outline-danger">
+          <Button onClick={() => deleteCategory(category, () => setShowCategoryAlert(!showCategoryAlert))} variant="outline-danger">
             {`Yes, delete '${category}'`}
           </Button>
 

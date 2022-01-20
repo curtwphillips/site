@@ -1,4 +1,10 @@
-const defaultTestTodos = [
+const { ObjectId } = require('mongodb');
+
+const { validate } = require("./schemas/validate");
+const { find, findOneAndDelete, insertOne } = require('../mongo/operations');
+
+/*
+const exampleTodos = [
   {
     category: 'General',
     hidden: false,
@@ -11,52 +17,66 @@ const defaultTestTodos = [
          "order": 0,
          "recurring":true
       },
-      {
-        "name":"vitamins-night",
-        "text":"Took vitamins this morning",
-        "checked":false,
-        "order": 1,
-        "recurring":true
-     }
-    ],
-  },
-  {
-    category: 'AA',
-    hidden: false,
-    order: 1,
-    todos: [
-      {
-         "name":"aa",
-         "text":"aa",
-         "checked":false,
-         "order": 0,
-         "recurring":true
-      },
     ],
   },
 ];
+*/
 
 exports.find = async (req, res) => {
-  // check db for todos of user
-
-
-  return res.json(defaultTestTodos || []);
+  const results = await find('todos', { userId: req.user._id });
+  console.log('results:', results);
+  return res.json(results || []);
 };
 
-exports.addTodo = async (req, res) => {
+/*
+{
+  category,
+  hidden: false,
+  order: getNewCategoryOrder(),
+  todos: []
+}
+*/
+exports.addCategory = async (req, res) => {
+  const categoryData = req.body;
+  categoryData.userId = req.user._id;
 
+  const { errors } = validate(categoryData, 'todosCategory');
+  if (errors) {
+    return res.status(400).send(errors);
+  }
+
+  // ensure category does not exist already
+  const results = await find('todos', { userId: req.user._id, category: categoryData.category });
+  
+  if (results.length) {
+    return res.status(400).json({ error: 'Category already exists' });
+  }
+
+  await insertOne('todos', categoryData);
+  return res.sendStatus(201);
+};
+
+exports.deleteCategory = async (req, res) => {
+  const { _id } = req.params;
+
+  console.log('req.params:', req.params);
+  if (!_id) {
+    console.log('received invalid req.params:', req.params);
+    return res.status(400).json({ error: 'Missing category id' });
+  }
+
+  await findOneAndDelete('todos', { userId: req.user._id, _id: ObjectId(_id) })
   return res.sendStatus(200);
 };
 
-exports.addCategory = async (req, res) => {
-  const categoryData = {
-    category: req.body.category,
-    hidden: false,
-    order: defaultTestTodos.length,
-    todos: [],
+exports.addTodo = async (req, res) => {
+  const { errors } = validate(req.body, 'todosTodo');
+  if (errors) {
+    return res.status(400).send(errors);
   }
-  defaultTestTodos.push(categoryData);
-  return res.json(defaultTestTodos || []);
+  throw new Error('todo: insert todo into category todos array')
+  // await insertOne("todos", req.body);
+  // return res.sendStatus(201);
 };
 
 exports.updateTodo = async (req, res) => {
@@ -79,7 +99,7 @@ exports.updateTodo = async (req, res) => {
   return res.json(defaultTestTodos || []);
 }
 
-exports.delete = async (req, res) => {
+exports.deleteTodo = async (req, res) => {
   // { category, todo: categoryData.todos[todoIndex] }
   const { category, todo } = req.body;
 

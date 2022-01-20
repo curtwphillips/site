@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import { userLogin } from '../../store/reducers/userSlice';
 
@@ -17,6 +17,7 @@ import { getAxiosError, setStateKeyVal } from '../../utilities';
 const rememberMe = (e) => console.log(e.target);
 
 export default function Login() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -37,7 +38,13 @@ export default function Login() {
       // save user to redux store
       dispatch(userLogin({ email: state.email, token: result.data.token }))
 
-      navigate('/', { replace: true });
+      // if redirect query string go to that location
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        navigate(`/${redirect}`, { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (err) {
       const error = getAxiosError(err);
       console.log(error);
