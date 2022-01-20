@@ -16,8 +16,10 @@ router.post("/logout", user.logout);
 
 // todo: add auth middleware
 router.get('/todos', todos.find);
+router.delete('/todos/todo', todos.delete);
 router.post('/todos/todo', todos.addTodo);
 router.post('/todos/category', todos.addCategory);
+router.put('/todos/todo', todos.updateTodo);
 
 router.get("*", redirect.destination);
 

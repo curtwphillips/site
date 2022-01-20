@@ -49,6 +49,7 @@ export function SortableCategory(props) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    width: '200px',
   };
 
   const sensors = useSensors(

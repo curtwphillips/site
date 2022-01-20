@@ -64,7 +64,37 @@ exports.updateTodo = async (req, res) => {
   const { category, todo } = req.body;
 
   const index = defaultTestTodos.findIndex((todos) => todos.category === category);
+
+  if (index === -1) {
+    return res.status(404);
+  }
+
   const todoIndex = defaultTestTodos[index].findIndex((todos) => todos._id === todo._id);
-  defaultTestTodos
+
+  if (todoIndex === -1) {
+    return res.status(404);
+  }
+
+  defaultTestTodos[index].todos[todoIndex] = todo;
   return res.json(defaultTestTodos || []);
 }
+
+exports.delete = async (req, res) => {
+  // { category, todo: categoryData.todos[todoIndex] }
+  const { category, todo } = req.body;
+
+  const index = defaultTestTodos.findIndex((todos) => todos.category === category);
+
+  if (index === -1) {
+    return res.status(404);
+  }
+
+  const todoIndex = defaultTestTodos[index].findIndex((todos) => todos._id === todo._id);
+
+  if (todoIndex === -1) {
+    return res.status(404);
+  }
+
+  defaultTestTodos[index].todos.splice(todoIndex, 1);
+  return res.json(defaultTestTodos || []);
+};

@@ -113,10 +113,10 @@ export default function AppNav() {
               links.right.map(({ hidden, itemAttributes, linkAttributes, iconAttributes, text }, i) => (
                 (!hidden || !hidden()) && (
                 (linkAttributes && <Link key={i} className="nav-link" { ...linkAttributes }>{text + '  '}
-                  {iconAttributes && <FontAwesomeIcon className="inline" { ...iconAttributes }/>}
+                  {iconAttributes && <FontAwesomeIcon { ...iconAttributes }/>}
                 </Link>) || (
                   itemAttributes && <div className="nav-link" key={i} { ...itemAttributes }>{text + '  '}
-                  {iconAttributes && <FontAwesomeIcon className="inline nav-link" { ...iconAttributes }/>}
+                  {iconAttributes && <FontAwesomeIcon { ...iconAttributes }/>}
                   </div>
                 ))
               ))

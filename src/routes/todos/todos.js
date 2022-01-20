@@ -13,7 +13,7 @@ import Container from '../../components/Container';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import Form from 'react-bootstrap/Form';
-import { deepCopy, handleError, setStateKeyVal } from '../../utilities';
+import { deepCopy, handleError, removeError, setStateKeyVal } from '../../utilities';
 import AlertBox from '../../components/AlertBox';
 import {
   DndContext, 
@@ -121,6 +121,7 @@ export default function Todos () {
         console.log('done with refs')
         updateData(responseData);
       }
+      removeError(state, updateState);
     } catch (err) {
       console.log(err)
       handleError(err, state, updateState);
@@ -130,6 +131,8 @@ export default function Todos () {
   const onCategoryKeyUp = (e) => {
     if (e.charCode === 13) {
       addCategory();
+    } else {
+      removeError(state, updateState);
     }
   }
 
@@ -143,6 +146,7 @@ export default function Todos () {
 
       // update backend, no reloading necessary for hiding a category
       await axios.put('/todos/category', { category, hidden: categoryData.hidden });
+      removeError(state, updateState);
     } catch (err) {
       handleError(err, state, updateState);
     }
@@ -195,8 +199,9 @@ export default function Todos () {
       }
 
       // text must be unique
-      if (getDataByCategory(category).todos.find((todo) => todo.text === value)) {
-        throw new Error('Todo already exists');
+      const existingTodo = getDataByCategory(category).todos.find((todo) => todo.text === value);
+      if (existingTodo) {
+        throw new Error(`Todo already exists with text "${existingTodo.text}"`);
       }
 
       // make random name for uniqueness
@@ -212,6 +217,7 @@ export default function Todos () {
 
       console.log('posting new todo:', newTodo);
       await axios.post('/todos/todo', { todo: newTodo });
+      removeError(state, updateState);
     } catch (err) {
       handleError(err, state, updateState);
     }
@@ -220,6 +226,8 @@ export default function Todos () {
   const onTodoKeyUp = (e, category) => {
     if (e.charCode === 13) {
       addTodo(category, e);
+    } else {
+      removeError(state, updateState);
     }
   }
 

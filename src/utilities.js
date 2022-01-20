@@ -49,11 +49,18 @@ function handleError(err, state, updateState) {
   setStateKeyVal(state, 'error', error, updateState);
 }
 
+function removeError(state, updateState) {
+  if (state.error) {
+    setStateKeyVal(state, 'error', null, updateState);
+  }
+}
+
 export {
   deepCopy,
   getAxiosError,
   getRandomDescriber,
   handleError,
   random,
+  removeError,
   setStateKeyVal,
 };
