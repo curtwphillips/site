@@ -17,10 +17,11 @@ router.post("/logout", user.logout);
 // todo: add auth middleware
 router.get('/todos', auth, todos.find);
 router.delete('/todos/category/:_id', auth, todos.deleteCategory);
-router.delete('/todos/todo/:_id', auth, todos.deleteTodo);
-router.post('/todos/todo', auth, todos.addTodo);
+router.delete('/todos/todo/:_id/:todoId', auth, todos.deleteTodo);
+router.post('/todos/todo/:_id', auth, todos.addTodo);
 router.post('/todos/category', auth, todos.addCategory);
-router.put('/todos/todo', auth, todos.updateTodo);
+router.put('/todos/category/:_id', auth, todos.updateCategory);
+router.put('/todos/todo/:_id', auth, todos.updateTodo);
 
 router.get("*", redirect.destination);
 

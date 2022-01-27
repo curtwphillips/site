@@ -17,7 +17,7 @@ import { getAxiosError, setStateKeyVal } from '../../utilities';
 const rememberMe = (e) => console.log(e.target);
 
 export default function Login() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -28,15 +28,12 @@ export default function Login() {
   });
 
   async function login() {
-    console.log('logging in user');
-    console.log('state:', state)
     try {
       const result = await axios.post('login', { email: state.email, password: state.password });
-      console.log('result.data:', result.data);
-      axios.defaults.headers.common['authorization'] = `Bearer ${result.data.token}`;
+      const user = { email: state.email, token: result.data.token };
 
       // save user to redux store
-      dispatch(userLogin({ email: state.email, token: result.data.token }))
+      dispatch(userLogin(user))
 
       // if redirect query string go to that location
       const redirect = searchParams.get('redirect');
@@ -46,9 +43,11 @@ export default function Login() {
         navigate('/', { replace: true });
       }
     } catch (err) {
-      const error = getAxiosError(err);
-      console.log(error);
-      setStateKeyVal(state, 'error', error, updateState);
+      let error = getAxiosError(err).toString();
+      if (error.includes('XMLHttpRequest')) {
+        error = 'Could not connect to server';
+      }
+      setStateKeyVal(state, 'error', error.toString(), updateState);
     }
   }
 

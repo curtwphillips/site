@@ -43,6 +43,7 @@ export function SortableCategory(props) {
       hideCategory,
       onTodoKeyUp,
       data,
+      updateAllChecked,
     }
   } = props;
 
@@ -60,6 +61,7 @@ export function SortableCategory(props) {
   );
 
   const [showCategoryAlert, setShowCategoryAlert] = useState(false);
+  const [allChecked, setAllChecked] = useState(false);
 
   return (
     <div className="category-container">
@@ -73,7 +75,7 @@ export function SortableCategory(props) {
         </p>
         <hr />
         <div className="d-flex justify-content-end">
-          <Button onClick={() => deleteCategory(category, () => setShowCategoryAlert(!showCategoryAlert))} variant="outline-danger">
+          <Button onClick={() => deleteCategory(category)} variant="outline-danger">
             {`Yes, delete '${category}'`}
           </Button>
 
@@ -89,6 +91,15 @@ export function SortableCategory(props) {
 
       {/* container for hiding todos in category */}
       <div key={category + '-category-hide-div'} className={data[index].hidden ? 'hidden' : ''}>
+
+        {/* check/uncheck all */}
+        <div className="todo-row inline">
+            <Form.Group className="mb-3 inline" controlId="todoList" >
+              <Form.Check onChange={(e) => updateAllChecked(e, category, setAllChecked)} className="inline ml-10" type="checkbox" checked={allChecked}/>
+              <label style={style} {...attributes} {...listeners} className="ml-10 inline"></label>
+            </Form.Group>
+        </div>
+
         <DndContext 
         sensors={sensors}
         collisionDetection={closestCenter}

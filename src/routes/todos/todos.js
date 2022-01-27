@@ -1,10 +1,3 @@
-/*
-
-allow rename of categories
-warn before deleting category
-allow checkbox for new todo to be recurring or not
-
-*/
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { createRef, useEffect, useState } from "react";
@@ -30,7 +23,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {SortableCategory} from './todosSortableCategory';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { userLogout } from '../../store/reducers/userSlice';
 
 export default function Todos () {
   const [state, updateState] = useState({});
@@ -39,6 +33,7 @@ export default function Todos () {
   const navigate = useNavigate();
 
   const user = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   // get the todos data for the user
   useEffect(() => {
@@ -52,23 +47,34 @@ export default function Todos () {
       try {
         const { data } = await axios.get('/todos');
 
-        console.log('axios get data:', data);
         if (isMounted) {
           data.forEach((categoryData) => {
             categoryData.todoTextRef = createRef();
-            if (!categoryData.order) {
+            if (!categoryData.order && categoryData.order !== 0) {
               categoryData.order = getNewCategoryOrder(categoryData.category, data);
             }
             // get next order value for any todos missing it
             categoryData.todos.forEach((todo) => {
-              if (!todo.order) {
+              if (!todo.order && todo.order !== 0) {
                 todo.order = getNewTodoOrder(categoryData.category, data);
               }
-            })
+            });
+
+            // sort todos by order
+            categoryData.todos.sort((a, b) => a.order > b.order ? 1 : -1);
           });
+
+          // sort categories by order
+          data.sort((a, b) => a.order > b.order ? 1 : -1);
+
           updateData(data);
         }
       } catch (err) {
+        console.log(err)
+        if (err.toString().includes('401') || err.toString().includes('403')) {
+          dispatch(userLogout());
+          return navigate('/login?redirect=todos', { replace: true });
+        }
         handleError(err, state, updateState);
       }
     }
@@ -81,11 +87,9 @@ export default function Todos () {
   }, []);
 
   function setupRefs(noRefData = data) {
-    console.log('noRefData:', noRefData)
     noRefData.forEach((categoryData) => {
       categoryData.todoTextRef = createRef();
     });
-    console.log('noRefData complete:', noRefData)
     return noRefData;
   }
 
@@ -129,11 +133,12 @@ export default function Todos () {
 
       newData.push(newCategory);
 
-      updateData(newData)
+      updateData(newData);
 
       // backend decides order and returns latest data
-      await axios.post('/todos/category', newCategory);
-
+      const result = await axios.post('/todos/category', newCategory);
+      newCategory._id = result.data._id;
+      updateData(deepCopyData(newData));
       removeError(state, updateState);
     } catch (err) {
       console.log(err)
@@ -158,7 +163,7 @@ export default function Todos () {
       updateData(newData);
 
       // update backend, no reloading necessary for hiding a category
-      await axios.put('/todos/category', { category, hidden: categoryData.hidden });
+      await axios.put(`/todos/category/${categoryData._id}`, { hidden: categoryData.hidden });
       removeError(state, updateState);
     } catch (err) {
       handleError(err, state, updateState);
@@ -218,18 +223,19 @@ export default function Todos () {
       }
 
       // make random name for uniqueness
-      const newTodo = { name: Math.random(), text: value, checked: false, order: '' + getNewTodoOrder(category) };
+      const newTodo = { text: value, checked: false, order: getNewTodoOrder(category) };
 
       // add todo to category
       const newData = deepCopyData(data);
       const categoryData = getDataByCategory(category, newData);
       categoryData.todos.push(newTodo);
 
-      updateData(newData);
+      updateData(deepCopyData(newData));
       target.value = '';
 
-      console.log('posting new todo:', newTodo);
-      await axios.post('/todos/todo', { todo: newTodo });
+      const result = await axios.post(`/todos/todo/${categoryData._id}`, newTodo);
+      newTodo.id = result.data.todoId;
+      updateData(newData);
       removeError(state, updateState);
     } catch (err) {
       handleError(err, state, updateState);
@@ -253,46 +259,63 @@ export default function Todos () {
 
   const updateChecked = async (category, todoIndex, e) => {
     try {
-      console.log('update checked starts')
       const newData = deepCopyData(data);
       const categoryData = getDataByCategory(category, newData);
       categoryData.todos[todoIndex].checked = e.target.checked;
-      console.log('newData:', newData)
       updateData(newData);
 
-      await axios.put('/todos/todo', { category, todo: categoryData.todos[todoIndex] });
+      await axios.put(`/todos/todo/${categoryData._id}`, categoryData.todos[todoIndex]);
     } catch (err) {
       handleError(err, state, updateState)
     }
   };
   
-  const deleteCategory = async (category, cb) => {
+  const deleteCategory = async (category) => {
     try {
       const newData = deepCopyData();
       const categoryIndex = newData.findIndex((categoryData) => categoryData.category === category);
       const categoryId = newData[categoryIndex]._id;
+
+      if (!categoryId) {
+        throw new Error('Missing category id');
+      }
       newData.splice(categoryIndex, 1);
       updateData(newData);
-      console.log('categoryId:', categoryId)
 
       await axios.delete(`/todos/category/${categoryId}`);
-      cb();
     } catch (err) {
       handleError(err, state, updateState);
     }
   };
 
-  const deleteTodo = async (category, todoIndex, cb) => {
+  const deleteTodo = async (category, todoIndex) => {
     try {
       const newData = deepCopyData();
       const categoryData = getDataByCategory(category, newData);
-      const todo = categoryData.todos[todoIndex];
-      categoryData.todos.splice(todoIndex, 1);
+      const todoArr = categoryData.todos.splice(todoIndex, 1);
+      const todo = todoArr[0];
       updateData(newData);
-      await axios.delete('/todos/todo', { category, todoId: todo._id });
-      cb();
+      await axios.delete(`/todos/todo/${categoryData._id}/${todo.id}`);
     } catch (err) {
       handleError(err, state, updateState);
+    }
+  };
+
+  const updateAllChecked = async (e, category, setAllChecked) => {
+    try {
+      setAllChecked(e.target.checked);
+      const newData = deepCopyData(data);
+      const categoryData = getDataByCategory(category, newData);
+      for (let i = 0; i < categoryData.todos.length; i++) {
+        const todo = categoryData.todos[i];
+        if (todo.checked !== e.target.checked) {
+          todo.checked = e.target.checked;
+          axios.put(`/todos/todo/${categoryData._id}`, todo);
+        }
+      }
+      updateData(newData);
+    } catch (err) {
+      handleError(err, state, updateState)
     }
   };
 
@@ -305,6 +328,7 @@ export default function Todos () {
     onTodoKeyUp,
     deepCopyData,
     data,
+    updateAllChecked,
     updateChecked,
   };
 
@@ -345,31 +369,47 @@ export default function Todos () {
   
   function handleDragEndTodo(event, category) {
     const {active, over} = event;
-    if (active.id !== over.id) {
-      const newData = deepCopyData();
-      let categoryData = getDataByCategory(category, newData);
-      const orders = categoryData.todos.map((todo) => todo.order);
-      const oldIndex = orders.indexOf(Number(active.id));
-      const newIndex = orders.indexOf(Number(over.id));
-      categoryData.todos = arrayMove(categoryData.todos, oldIndex, newIndex);
-      updateData(newData);
+    if (active.id === over.id) {
+      return;
     }
+
+    const newData = deepCopyData();
+    let categoryData = getDataByCategory(category, newData);
+    const orders = categoryData.todos.map((todo) => todo.order);
+    const oldIndex = orders.indexOf(Number(active.id));
+    const newIndex = orders.indexOf(Number(over.id));
+    categoryData.todos = arrayMove(categoryData.todos, oldIndex, newIndex);
+
+    for (let i = 0; i < categoryData.todos.length; i++) {
+      if (categoryData.todos[i].order !== i) {
+        categoryData.todos[i].order = i;
+        axios.put(`/todos/todo/${categoryData._id}`, categoryData.todos[i]);
+      }
+    }
+
+    updateData(newData);
   }
 
   function handleDragEndCategory (event) {
     const {active, over} = event;
-    console.log('handleDragEndCategory:', active, 'over:', over)
-    if (active.id !== over.id) {
-      const orders = data.map((categoryData) => categoryData.order);
-      const oldIndex = orders.indexOf(Number(active.id));
-      const newIndex = orders.indexOf(Number(over.id));
-      console.log('oldIndex:', oldIndex, 'newIndex:', newIndex)
-      let result = deepCopyData(arrayMove(data, oldIndex, newIndex));
-      console.log('result:', result);
-      result = JSON.parse(JSON.stringify(result));
-      updateData(result);
-      console.log('data:', data);
+    if (active.id === over.id) {
+      return;
     }
+
+    const orders = data.map((categoryData) => categoryData.order);
+    const oldIndex = orders.indexOf(Number(active.id));
+    const newIndex = orders.indexOf(Number(over.id));
+
+    let result = deepCopyData(arrayMove(data, oldIndex, newIndex));
+
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].order !== i) {
+        result[i].order = i;
+        axios.put(`/todos/category/${result[i]._id}`, { order: i })
+      }
+    }
+    result = JSON.parse(JSON.stringify(result));
+    updateData(result);
   }
 }
 

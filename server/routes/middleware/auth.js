@@ -14,6 +14,7 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
+      // verify token is still active
       const decoded = jwt.verify(token, process.env.TOKEN_KEY);
       req.user = decoded;
     } catch (err) {

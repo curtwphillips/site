@@ -1,6 +1,6 @@
 import Container from '../components/Container';
 import { Link } from "react-router-dom";
-import './Family.css';
+import './css/Family.css';
 
 export default function Family({profile}) {
   const {

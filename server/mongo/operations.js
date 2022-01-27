@@ -34,5 +34,24 @@ exports.insertMany = async (collection, docs) => {
 };
 
 exports.findOneAndUpdate = async (collection, filter, update) => {
-  return await mongo.db.collection(collection).findOneAndUpdate(filter, update);
+  return await mongo.db.collection(collection).findOneAndUpdate(filter, { '$set': update });
 };
+
+exports.addToArray = async (collection, filter, update) => {
+  return await mongo.db.collection(collection).updateOne(filter, { $push: update });
+};
+
+exports.updateArrayByField = async (collection, filter, updates) => {
+  return await mongo.db.collection(collection).findOneAndUpdate(filter, {
+    $set: updates,
+  });
+};
+
+exports.removeFromArray = async (collection, filter, update) => {
+  return await mongo.db.collection(collection).updateOne(
+    filter,
+    {
+      $pull: update,
+    }
+  )
+}

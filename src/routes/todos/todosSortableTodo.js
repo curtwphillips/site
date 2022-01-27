@@ -33,9 +33,9 @@ export function SortableTodo(props) {
 
   return (
     <div ref={setNodeRef}>
-        <div className="todo-row inline" key={todo.name}>
+        <div className="todo-row inline" key={todo.text}>
           <Form.Group className="mb-3 inline" controlId="todoList" >
-            <Form.Check onChange={(e) => updateChecked(category, todoIndex, e)} className="inline ml-10" type="checkbox" id={todo.name}/>
+            <Form.Check onChange={(e) => updateChecked(category, todoIndex, e)} className="inline ml-10" type="checkbox" id={todo.id} checked={todo.checked}/>
             {/* <div style={style} {...attributes} {...listeners}></div> */}
             <label style={style} {...attributes} {...listeners} className={`ml-10 inline ${data[categoryIndex].todos[todoIndex].checked ? 'strike' : ''}`}>{todo.text}</label>
             {/* </div> */}

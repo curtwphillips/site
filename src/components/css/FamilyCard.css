@@ -1,4 +1,4 @@
-.card-container {
+.family-card-container {
   padding: 10px;
   display: flex;
   flex-wrap: wrap;
@@ -7,14 +7,14 @@
   justify-content: center;
 }
 
-.card {
+.family-card {
   color: white;
   border: 1px solid gray;
   width: 200px;
   padding: 10px;
   overflow: hidden;
 }
-.card a {
+.family-card a {
   color: white;
 }
 .image-container {

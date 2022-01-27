@@ -1,3 +1,4 @@
+import { Container } from "react-bootstrap";
 import '../../css/common.css';
 import Family from '../../components/Family';
 import familyData from '../../data/familyData.json';
@@ -25,6 +26,8 @@ export default function FamilyDetail() {
   }
 
   return (
-    <Family profile={profile}/>
+    <Container className="vertical-padding-40 center">
+      <Family profile={profile}/>
+    </Container>
   )
 }

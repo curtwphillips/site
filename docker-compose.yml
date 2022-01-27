@@ -1,18 +1,27 @@
 version: "3"
 services:
+  nginx:
+    image: nginx
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - site
   site:
     container_name: site
     image: site
     restart: always
     build: .
     ports:
-      - "80:3000"
+      - "3000"
     links:
       - mongo
   mongo:
     container_name: mongo
     image: mongo
-    # volumes:
-    #   - ./data:/data/db
+    volumes:
+      - ./data:/data/db
     ports:
       - "27017:27017"

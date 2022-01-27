@@ -1,7 +1,7 @@
-import './Card.css';
+import './css/FamilyCard.css';
 import { Link } from "react-router-dom";
 
-export default function Card({ card }) {
+export default function FamilyCard({ card }) {
   const {
     background,
     image,
@@ -11,7 +11,7 @@ export default function Card({ card }) {
   } = card;
 
   return (
-    <div className="card" style={{ backgroundColor: background }}>
+    <div className="family-card" style={{ backgroundColor: background }}>
       <Link to={link}>
       <div>
         <h3>Name: { name }</h3>

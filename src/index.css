@@ -11,3 +11,29 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.mb1rem {
+  margin-bottom: 1rem;
+}
+.vertical-padding-40 {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.vertical-padding-10 {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.vertical-padding-5 {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.center {
+  text-align: center;
+  justify-content: center;
+}
+.m-10 {
+  margin: 10px;
+}
+.m-20 {
+  margin: 20px;
+}

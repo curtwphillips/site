@@ -1,25 +1,50 @@
 import axios from 'axios';
-import './Nav.css';
-import { Link, useNavigate } from "react-router-dom";
+import './css/Nav.css';
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
 import BitcoinPrice from './BitcoinPrice';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignInAlt } from '@fortawesome/free-solid-svg-icons';
-import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
-import { faStickyNote } from '@fortawesome/free-solid-svg-icons';
-import { faUsers } from '@fortawesome/free-solid-svg-icons';
-import { faHome } from '@fortawesome/free-solid-svg-icons';
+
+import {
+  faClipboard,
+  faFileInvoiceDollar,
+  faHome,
+  faNewspaper,
+  faSignInAlt,
+  faSignOutAlt,
+  faStickyNote,
+  faUsers,
+} from '@fortawesome/free-solid-svg-icons';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { userLogout } from '../store/reducers/userSlice';
+import { userLogin } from '../store/reducers/userSlice';
 
 export default function AppNav() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
-  console.log('user:', user);
+
+  if (!user || !user.token) {
+    let userStorage = localStorage.getItem('user');
+
+    if (userStorage) {
+      console.log('userStorage:', userStorage);
+      userStorage = JSON.parse(userStorage);
+      const bearerToken = `Bearer ${userStorage.token}`
+      axios.defaults.headers.common['authorization'] = bearerToken;
+      dispatch(userLogin(userStorage))
+    }
+  }
+
+  const noAuthPaths = [
+    '/',
+    '/family',
+    '/links',
+  ];
 
   const links = {
     left: [
@@ -42,9 +67,38 @@ export default function AppNav() {
         text: 'Family',
       },
       {
+        iconAttributes: {
+          icon: faNewspaper,
+        },
+        linkAttributes: {
+          to: '/links',
+        },
+        text: 'Links',
+      },
+      {
+        hidden: () => !user.token,
+        iconAttributes: {
+          icon: faFileInvoiceDollar,
+        },
+        linkAttributes: {
+          to: '/budget',
+        },
+        text: 'Budget',
+      },
+      {
         hidden: () => !user.token,
         iconAttributes: {
           icon: faStickyNote,
+        },
+        linkAttributes: {
+          to: '/notes',
+        },
+        text: 'Notes',
+      },
+      {
+        hidden: () => !user.token,
+        iconAttributes: {
+          icon: faClipboard,
         },
         linkAttributes: {
           to: '/todos',
@@ -58,8 +112,15 @@ export default function AppNav() {
         iconAttributes: {
           icon: faSignInAlt,
         },
-        linkAttributes: {
-          to: '/login',
+        itemAttributes: {
+          onClick: async () => {
+            const currentPath = location.pathname;
+            console.log('currentPath:', currentPath);
+            if (currentPath === '/login') {
+              return;
+            }
+            navigate(`/login?redirect=${currentPath.slice(1)}`, { replace: true });
+          },
         },
         text: 'Login',
       },
@@ -70,16 +131,13 @@ export default function AppNav() {
         },
         itemAttributes: {
           onClick: async () => {
-            // remove token from axios
-            axios.defaults.headers.common['authorization'] = '';
-
-            // notify backend
-            axios.post('logout', { token: user.token });
-
             dispatch(userLogout());
-            console.log('dispatched user logout user:', user)
-            // go home
-            navigate('/', { replace: true });
+            // go home if on auth path
+            const currentPath = location.pathname;
+            console.log('currentPath:', currentPath);
+            if (!noAuthPaths.includes(currentPath)) {
+              navigate('/login', { replace: true });
+            }
           },
         },
         text: 'Logout',

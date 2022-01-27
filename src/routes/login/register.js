@@ -20,11 +20,8 @@ export default function Register() {
   });
 
   async function register() {
-    console.log('registering user');
-    console.log('state:', state)
     try {
       const result = await axios.post('register', { email: state.email, password: state.password });
-      console.log('result.data:', result.data);
     } catch (err) {
       const error = getAxiosError(err);
       console.log(error);

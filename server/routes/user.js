@@ -9,12 +9,6 @@ const { ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-// todo: use cache
-const tokens = [];
-
-// const { userSchema } = require("./schemas/user");
-// const { validate } = require("./schemas/validate");
-
 exports.find = async (req, res) => {
   const result = await findOne("users", { _id: req.params.id });
   res.status(200).send(result);
@@ -25,19 +19,16 @@ exports.register = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email) {
-      console.log('missing email:', req.body);
       return res.status(400).send("Email is required");
     }
 
     if (!password) {
-      console.log('missing password:', req.body);
       return res.status(400).send("Password is required");
     }
 
     const existingUser = await findOne("users", { email });
 
     if (existingUser) {
-      console.log('existingUser:', existingUser)
       return res.status(409).json({ text: "User already exists. Please login" });
     }
 
@@ -69,12 +60,10 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email) {
-      console.log('missing email:', req.body);
       return res.status(400).send("Email is required");
     }
 
     if (!password) {
-      console.log('missing password:', req.body);
       return res.status(400).send("Password is required");
     }
 
@@ -89,14 +78,7 @@ exports.login = async (req, res) => {
         }
       );
 
-      const newVal = { token: user.token, user };
-      const index = tokens.findIndex((val) => val.user.email === email);
-      if (index > -1) {
-        tokens[index] = newVal;
-      } else {
-        tokens.push(newVal);
-      }
-
+      console.log('returning new token:', user.token);
       return res.status(200).json({ token: user.token });
     }
 
@@ -112,14 +94,8 @@ exports.logout = async (req, res) => {
     const { token } = req.body;
 
     if (!token) {
-      console.log('missing token:', req.body);
+      // nothing to do
       return res.sendStatus();
-    }
-
-    // remove token from memory (todo: use cache)
-    const index = tokens.findIndex((val) => val.token === token);
-    if (index > -1) {
-      tokens.splice(index, 1);
     }
   } catch (err) {
     console.log(err);

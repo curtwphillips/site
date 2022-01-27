@@ -1,7 +1,9 @@
+const { v4: uuidv4 } = require('uuid');
+
 const { ObjectId } = require('mongodb');
 
 const { validate } = require("./schemas/validate");
-const { find, findOneAndDelete, insertOne } = require('../mongo/operations');
+const { addToArray, find, findOneAndDelete, findOneAndUpdate, insertOne, removeFromArray, updateArrayByField } = require('../mongo/operations');
 
 /*
 const exampleTodos = [
@@ -24,7 +26,6 @@ const exampleTodos = [
 
 exports.find = async (req, res) => {
   const results = await find('todos', { userId: req.user._id });
-  console.log('results:', results);
   return res.json(results || []);
 };
 
@@ -52,16 +53,14 @@ exports.addCategory = async (req, res) => {
     return res.status(400).json({ error: 'Category already exists' });
   }
 
-  await insertOne('todos', categoryData);
-  return res.sendStatus(201);
+  const result = await insertOne('todos', categoryData);
+  return res.status(201).json({ _id: result.insertedId });
 };
 
 exports.deleteCategory = async (req, res) => {
   const { _id } = req.params;
 
-  console.log('req.params:', req.params);
   if (!_id) {
-    console.log('received invalid req.params:', req.params);
     return res.status(400).json({ error: 'Missing category id' });
   }
 
@@ -70,51 +69,55 @@ exports.deleteCategory = async (req, res) => {
 };
 
 exports.addTodo = async (req, res) => {
+  const _id = ObjectId(req.params._id);
+
   const { errors } = validate(req.body, 'todosTodo');
   if (errors) {
     return res.status(400).send(errors);
   }
-  throw new Error('todo: insert todo into category todos array')
-  // await insertOne("todos", req.body);
-  // return res.sendStatus(201);
+
+  const todo = req.body;
+  todo.id = uuidv4();
+
+  await addToArray("todos", { _id }, { todos: todo });
+  return res.status(201).json({ todoId: todo.id });
+};
+
+exports.updateCategory = async (req, res) => {
+  try {
+    const _id = ObjectId(req.params._id);
+
+    const { errors } = validate(req.body, 'todosCategoryUpdate');
+    if (errors) {
+      return res.status(400).send(errors);
+    }
+
+    await findOneAndUpdate('todos', { _id }, req.body);
+    res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
 };
 
 exports.updateTodo = async (req, res) => {
-  // { category, todo: categoryData.todos[todoIndex] }
-  const { category, todo } = req.body;
-
-  const index = defaultTestTodos.findIndex((todos) => todos.category === category);
-
-  if (index === -1) {
-    return res.status(404);
+  const _id = ObjectId(req.params._id);
+  const todo = req.body;
+  
+  const update = {}
+  for (let key in todo) {
+    update[`todos.$.${key}`] = todo[key];
   }
-
-  const todoIndex = defaultTestTodos[index].findIndex((todos) => todos._id === todo._id);
-
-  if (todoIndex === -1) {
-    return res.status(404);
-  }
-
-  defaultTestTodos[index].todos[todoIndex] = todo;
-  return res.json(defaultTestTodos || []);
+  await updateArrayByField('todos', { _id, 'todos.id': todo.id }, update);
+  res.sendStatus(200);
 }
 
 exports.deleteTodo = async (req, res) => {
-  // { category, todo: categoryData.todos[todoIndex] }
-  const { category, todo } = req.body;
+  const { _id, todoId} = req.params;
 
-  const index = defaultTestTodos.findIndex((todos) => todos.category === category);
+  await removeFromArray('todos', { _id: ObjectId(_id) }, {
+    todos: { id: todoId },
+  });
 
-  if (index === -1) {
-    return res.status(404);
-  }
-
-  const todoIndex = defaultTestTodos[index].findIndex((todos) => todos._id === todo._id);
-
-  if (todoIndex === -1) {
-    return res.status(404);
-  }
-
-  defaultTestTodos[index].todos.splice(todoIndex, 1);
-  return res.json(defaultTestTodos || []);
+  return res.sendStatus(200);
 };
