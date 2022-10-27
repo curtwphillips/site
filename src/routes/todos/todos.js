@@ -1,15 +1,20 @@
 import axios from 'axios';
-import { useNavigate } from "react-router-dom";
-import { createRef, useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { createRef, useEffect, useState } from 'react';
 import './todos.css';
 import Container from '../../components/Container';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import Form from 'react-bootstrap/Form';
-import { deepCopy, handleError, removeError, setStateKeyVal } from '../../utilities';
+import {
+  deepCopy,
+  handleError,
+  removeError,
+  setStateKeyVal,
+} from '../../utilities';
 import AlertBox from '../../components/AlertBox';
 import {
-  DndContext, 
+  DndContext,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
@@ -22,11 +27,11 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import {SortableCategory} from './todosSortableCategory';
+import { SortableCategory } from './todosSortableCategory';
 import { useDispatch, useSelector } from 'react-redux';
 import { userLogout } from '../../store/reducers/userSlice';
 
-export default function Todos () {
+export default function Todos() {
   const [state, updateState] = useState({});
   const [data, updateData] = useState([]);
   const categoryTextInputRef = createRef();
@@ -51,7 +56,10 @@ export default function Todos () {
           data.forEach((categoryData) => {
             categoryData.todoTextRef = createRef();
             if (!categoryData.order && categoryData.order !== 0) {
-              categoryData.order = getNewCategoryOrder(categoryData.category, data);
+              categoryData.order = getNewCategoryOrder(
+                categoryData.category,
+                data
+              );
             }
             // get next order value for any todos missing it
             categoryData.todos.forEach((todo) => {
@@ -61,16 +69,16 @@ export default function Todos () {
             });
 
             // sort todos by order
-            categoryData.todos.sort((a, b) => a.order > b.order ? 1 : -1);
+            categoryData.todos.sort((a, b) => (a.order > b.order ? 1 : -1));
           });
 
           // sort categories by order
-          data.sort((a, b) => a.order > b.order ? 1 : -1);
+          data.sort((a, b) => (a.order > b.order ? 1 : -1));
 
           updateData(data);
         }
       } catch (err) {
-        console.log(err)
+        console.log(err);
         if (err.toString().includes('401') || err.toString().includes('403')) {
           dispatch(userLogout());
           return navigate('/login?redirect=todos', { replace: true });
@@ -83,28 +91,29 @@ export default function Todos () {
 
     return () => {
       isMounted = false;
-    }
+    };
   }, []);
 
-  function setupRefs(noRefData = data) {
-    noRefData.forEach((categoryData) => {
+  function setupRefs(dataNeedingRefs = data) {
+    dataNeedingRefs.forEach((categoryData) => {
       categoryData.todoTextRef = createRef();
     });
-    return noRefData;
+    return dataNeedingRefs;
   }
 
-  function removeRefs(refData = data) {
-    refData.forEach((categoryData) => {
+  function removeRefs(dataToRemoveRefs = data) {
+    dataToRemoveRefs.forEach((categoryData) => {
       delete categoryData.todoTextRef;
     });
-    return refData;
+    return dataToRemoveRefs;
   }
 
   function deepCopyData(data) {
     return setupRefs(deepCopy(removeRefs(data)));
   }
 
-  const getDataByCategory = (category, newData) => (newData || data).find((todos) => todos.category === category);
+  const getDataByCategory = (category, newData) =>
+    (newData || data).find((todos) => todos.category === category);
 
   const addCategory = async () => {
     try {
@@ -128,7 +137,7 @@ export default function Todos () {
         category,
         hidden: false,
         order: getNewCategoryOrder(),
-        todos: []
+        todos: [],
       };
 
       newData.push(newCategory);
@@ -141,10 +150,10 @@ export default function Todos () {
       updateData(deepCopyData(newData));
       removeError(state, updateState);
     } catch (err) {
-      console.log(err)
+      console.log(err);
       handleError(err, state, updateState);
     }
-  }
+  };
 
   const onCategoryKeyUp = (e) => {
     if (e.charCode === 13) {
@@ -152,7 +161,7 @@ export default function Todos () {
     } else {
       removeError(state, updateState);
     }
-  }
+  };
 
   const hideCategory = async (category) => {
     try {
@@ -163,7 +172,9 @@ export default function Todos () {
       updateData(newData);
 
       // update backend, no reloading necessary for hiding a category
-      await axios.put(`/todos/category/${categoryData._id}`, { hidden: categoryData.hidden });
+      await axios.put(`/todos/category/${categoryData._id}`, {
+        hidden: categoryData.hidden,
+      });
       removeError(state, updateState);
     } catch (err) {
       handleError(err, state, updateState);
@@ -172,7 +183,9 @@ export default function Todos () {
 
   const getNewCategoryOrder = (category, paramData = data) => {
     try {
-      const existingOrders = paramData.map((categoryData) => Number(categoryData.order));
+      const existingOrders = paramData.map((categoryData) =>
+        Number(categoryData.order)
+      );
 
       // default to 0 if no categories
       if (!existingOrders.length) {
@@ -188,7 +201,9 @@ export default function Todos () {
   const getNewTodoOrder = (category, categoryData) => {
     try {
       categoryData = categoryData || getDataByCategory(category);
-      const existingOrders = (categoryData.todos || []).map((todo) => Number(todo.order));
+      const existingOrders = (categoryData.todos || []).map((todo) =>
+        Number(todo.order)
+      );
 
       // default to 0 if no todos
       if (!existingOrders.length) {
@@ -197,7 +212,7 @@ export default function Todos () {
 
       return 1 + Math.max.apply(null, existingOrders);
     } catch (err) {
-      handleError(err, state, updateState)
+      handleError(err, state, updateState);
     }
   };
 
@@ -217,13 +232,19 @@ export default function Todos () {
       }
 
       // text must be unique
-      const existingTodo = getDataByCategory(category).todos.find((todo) => todo.text === value);
+      const existingTodo = getDataByCategory(category).todos.find(
+        (todo) => todo.text === value
+      );
       if (existingTodo) {
         throw new Error(`Todo already exists with text "${existingTodo.text}"`);
       }
 
       // make random name for uniqueness
-      const newTodo = { text: value, checked: false, order: getNewTodoOrder(category) };
+      const newTodo = {
+        text: value,
+        checked: false,
+        order: getNewTodoOrder(category),
+      };
 
       // add todo to category
       const newData = deepCopyData(data);
@@ -233,7 +254,10 @@ export default function Todos () {
       updateData(deepCopyData(newData));
       target.value = '';
 
-      const result = await axios.post(`/todos/todo/${categoryData._id}`, newTodo);
+      const result = await axios.post(
+        `/todos/todo/${categoryData._id}`,
+        newTodo
+      );
       newTodo.id = result.data.todoId;
       updateData(newData);
       removeError(state, updateState);
@@ -241,14 +265,14 @@ export default function Todos () {
       handleError(err, state, updateState);
     }
   };
- 
+
   const onTodoKeyUp = (e, category) => {
     if (e.charCode === 13) {
       addTodo(category, e);
     } else {
       removeError(state, updateState);
     }
-  }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -264,16 +288,21 @@ export default function Todos () {
       categoryData.todos[todoIndex].checked = e.target.checked;
       updateData(newData);
 
-      await axios.put(`/todos/todo/${categoryData._id}`, categoryData.todos[todoIndex]);
+      await axios.put(
+        `/todos/todo/${categoryData._id}`,
+        categoryData.todos[todoIndex]
+      );
     } catch (err) {
-      handleError(err, state, updateState)
+      handleError(err, state, updateState);
     }
   };
-  
+
   const deleteCategory = async (category) => {
     try {
       const newData = deepCopyData();
-      const categoryIndex = newData.findIndex((categoryData) => categoryData.category === category);
+      const categoryIndex = newData.findIndex(
+        (categoryData) => categoryData.category === category
+      );
       const categoryId = newData[categoryIndex]._id;
 
       if (!categoryId) {
@@ -315,7 +344,7 @@ export default function Todos () {
       }
       updateData(newData);
     } catch (err) {
-      handleError(err, state, updateState)
+      handleError(err, state, updateState);
     }
   };
 
@@ -334,41 +363,64 @@ export default function Todos () {
 
   return (
     <Container>
-    <div className="form-section" id="health-container">
+      <div className="form-section">
+        <AlertBox
+          show={state.error ? true : false}
+          variant="danger"
+          message={(state.error && state.error.text) || state.error}
+          onClick={() => setStateKeyVal(state, 'error', null, updateState)}
+        />
 
-      <AlertBox
-        show={state.error ? true : false}
-        variant="danger"
-        message={(state.error && state.error.text) || state.error}
-        onClick={() => setStateKeyVal(state, 'error', null, updateState)}
-      />
+        {/* add a new category */}
+        <div className="todo-row mt-3 mb-5">
+          <Form.Group className="mb-3" controlId="categoryInput">
+            <Form.Control
+              ref={categoryTextInputRef}
+              onKeyPress={onCategoryKeyUp}
+              className="inline thin-input mr-5"
+              type="text"
+              placeholder="enter new category"
+            />
+            {'  '}
+            <FontAwesomeIcon
+              className="inline"
+              icon={faPlus}
+              onClick={addCategory}
+            />
+          </Form.Group>
+        </div>
 
-      {/* add a new category */}
-      <div className="todo-row mt-3 mb-5">
-        <Form.Group className="mb-3" controlId="categoryInput">
-          <Form.Control ref={categoryTextInputRef} onKeyPress={onCategoryKeyUp} className="inline thin-input mr-5" type="text" placeholder="enter new category" />{'  '}
-          <FontAwesomeIcon className="inline" icon={faPlus} onClick={addCategory}/>
-        </Form.Group>
-      </div>
-
-      <DndContext 
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={(e) => handleDragEndCategory(e)}
-      >
-        <SortableContext
-          items={data.map((categoryData) => categoryData.order.toString())}
-          strategy={verticalListSortingStrategy}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={(e) => handleDragEndCategory(e)}
         >
-          {data.map((categoryData) => categoryData.order).sort((a, b) => a.order - b.order).map((order, index) => <SortableCategory index={index} order={order} category={data[index].category} key={data[index].category} id={data[index].order.toString()} value={data[index]} shared={shared} />)}
-        </SortableContext>
-      </DndContext>
-    </div>
+          <SortableContext
+            items={data.map((categoryData) => categoryData.order.toString())}
+            strategy={verticalListSortingStrategy}
+          >
+            {data
+              .map((categoryData) => categoryData.order)
+              .sort((a, b) => a.order - b.order)
+              .map((order, index) => (
+                <SortableCategory
+                  index={index}
+                  order={order}
+                  category={data[index].category}
+                  key={data[index].category}
+                  id={data[index].order.toString()}
+                  value={data[index]}
+                  shared={shared}
+                />
+              ))}
+          </SortableContext>
+        </DndContext>
+      </div>
     </Container>
   );
-  
+
   function handleDragEndTodo(event, category) {
-    const {active, over} = event;
+    const { active, over } = event;
     if (active.id === over.id) {
       return;
     }
@@ -390,8 +442,8 @@ export default function Todos () {
     updateData(newData);
   }
 
-  function handleDragEndCategory (event) {
-    const {active, over} = event;
+  function handleDragEndCategory(event) {
+    const { active, over } = event;
     if (active.id === over.id) {
       return;
     }
@@ -405,11 +457,10 @@ export default function Todos () {
     for (let i = 0; i < result.length; i++) {
       if (result[i].order !== i) {
         result[i].order = i;
-        axios.put(`/todos/category/${result[i]._id}`, { order: i })
+        axios.put(`/todos/category/${result[i]._id}`, { order: i });
       }
     }
     result = JSON.parse(JSON.stringify(result));
     updateData(result);
   }
 }
-

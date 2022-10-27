@@ -1,11 +1,15 @@
-FROM node:latest
+FROM node:14
 
 WORKDIR /app
 
-COPY . .
+COPY package.json /app
 
-RUN npm install
+RUN npm i
 
-EXPOSE 3000
+COPY src /app
 
-CMD [ "node", "server/index" ]
+RUN npm run build
+
+COPY . /app
+
+# CMD [ "nodemon", "--legacy-watch", "server/index" ]

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -21,7 +21,10 @@ export default function Register() {
 
   async function register() {
     try {
-      const result = await axios.post('register', { email: state.email, password: state.password });
+      await axios.post('register', {
+        email: state.email,
+        password: state.password,
+      });
     } catch (err) {
       const error = getAxiosError(err);
       console.log(error);
@@ -32,7 +35,7 @@ export default function Register() {
   return (
     <Container>
       <Row className="justify-content-md-center">
-        <Col md='7'>
+        <Col md="7">
           <Form className="input-form">
             <h3>Sign Up</h3>
 
@@ -42,14 +45,22 @@ export default function Register() {
 
             <Form.Group>
               <Form.Label>Email</Form.Label>
-              <Form.Control type="email" placeholder="Enter email" defaultValue={state.email || 'curtwphillips@gmail.com'}/>
+              <Form.Control
+                type="email"
+                placeholder="Enter email"
+                defaultValue={state.email || 'curtwphillips@gmail.com'}
+              />
             </Form.Group>
 
             <br />
 
             <Form.Group>
               <Form.Label>Password</Form.Label>
-              <Form.Control type="password" placeholder="Enter password" defaultValue={state.password || 'test'}/>
+              <Form.Control
+                type="password"
+                placeholder="Enter password"
+                defaultValue={state.password || 'test'}
+              />
             </Form.Group>
 
             <br />

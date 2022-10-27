@@ -4,10 +4,13 @@
   "private": true,
   "scripts": {
     "start": "react-scripts start",
+    "dev": "npm run start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "server": "nodemon server/index",
+    "server": "node server",
+    "devserver": "NODE_ENV=development nodemon server",
+    "localserver": "NODE_ENV=local nodemon server",
     "deploy": "npm run build && firebase deploy"
   },
   "nodemonConfig": {
@@ -35,6 +38,7 @@
     "@fortawesome/react-fontawesome": "^0.1.16",
     "@reduxjs/toolkit": "^1.7.1",
     "firebase": "^9.6.1",
+    "nodemon": "^2.0.20",
     "react": "^17.0.2",
     "react-bootstrap": "^2.1.1",
     "react-dom": "^17.0.2",

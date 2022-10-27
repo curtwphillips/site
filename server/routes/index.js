@@ -1,18 +1,26 @@
-const router = require("express").Router();
+const router = require('express').Router();
 
-const redirect = require("./redirect");
-const todos = require("./todos");
-const user = require("./user");
+console.log('loading routes');
 
-const auth = require("./middleware/auth");
+const redirect = require('./redirect');
+const todos = require('./todos');
+const user = require('./user');
+const notes = require('./notes');
 
-router.get("/user/:id", user.find);
-router.put("/user/:id", user.update);
-router.delete("/user/:id", user.delete);
+const auth = require('./middleware/auth');
 
-router.post("/register", user.register);
-router.post("/login", user.login);
-router.post("/logout", user.logout);
+router.get('/user/:id', user.find);
+router.put('/user/:id', user.update);
+router.delete('/user/:id', user.delete);
+
+router.post('/register', user.register);
+router.post('/login', user.login);
+router.post('/logout', user.logout);
+
+router.get('/notes', auth, notes.find);
+router.post('/notes', auth, notes.add);
+router.put('/notes/:_id', auth, notes.update);
+router.delete('/notes/:_id', auth, notes.delete);
 
 // todo: add auth middleware
 router.get('/todos', auth, todos.find);
@@ -23,6 +31,6 @@ router.post('/todos/category', auth, todos.addCategory);
 router.put('/todos/category/:_id', auth, todos.updateCategory);
 router.put('/todos/todo/:_id', auth, todos.updateTodo);
 
-router.get("*", redirect.destination);
+router.get('*', redirect.destination);
 
 module.exports = router;

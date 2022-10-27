@@ -1,32 +1,24 @@
 const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
-const describers = [
-  'Noob',
-  'Friend',
-  'Ninja',
-  'Wizard',
-  'Terminator'
-];
+const describers = ['Noob', 'Friend', 'Ninja', 'Wizard', 'Terminator'];
 
 const getRandomDescriber = () => describers[random(0, describers.length - 1)];
 
 const getAxiosError = (err) => {
-  // console.log(err.config);
+  console.log('getAxiosError err', err);
   if (err.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
-    console.log(`${err.response.status}: ${err.response.data}`);
+    // console.log(`${err.response.status}: ${JSON.stringify(err.response.data)}`);
     return err.response.data;
   } else if (err.request) {
     // The request was made but no response was received
     // `err.request` is an instance of XMLHttpRequest in the browser and an instance of
     // http.ClientRequest in node.js
-    console.log(err.request);
-    return err.request;
+    return err.message || err;
   } else {
     // Something happened in setting up the request that triggered an err
-    console.log('err', err.message);
-    return err.message;
+    return err.message || err;
   }
 };
 
